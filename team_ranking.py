@@ -13,9 +13,7 @@ def next_idx():
     
     if 'iter' in dir(next_idx):
         return next_idx.iter.__next__()
-
     else:
-    
         def fn(first):
             while True:
                 yield first
