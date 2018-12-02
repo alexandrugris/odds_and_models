@@ -29,19 +29,25 @@ data = import_data('brighton', 'totenham')
 ### these points to be discussed
 fp = {
       # first 3, exclusive 
-       '#1 To Score 1 goal' : 4,
-       '#2 To Score 2 goals' : 4,
-       '#3 To Score 3 goals' : 4,
+       '#1 To Score 1 goal' :  [2, 0],
+       '#2 To Score 2 goals' : [2, 0],
+       '#3 To Score 3 goals' : [2, 0],
        
-       '#4 Make an assist' : 4,
+       '#4 Make an assist' : [1,1],
        
-       '#5 Play >60 minutes' : 1,
-       '#6 Play full match': 0, # will add in total 2 points, 
+       '#5 Play >60 minutes' : [1, 2],
+       '#6 Play full match': [1, 2], # will add in total 2 points, 
        
-       '#7 Get a yellow card' : -1,
-       '#8 Get a red card (edited' : -3,
-       '#9 keeper_save( 3 saves) for GK': 3
+       '#7 Get a yellow card' : [-1, 3],
+       '#8 Get a red card (edited' : [-2, 4],
+       '#9 keeper_save( 3 saves) for GK': [3, 5]
       }
+
+fp = pd.DataFrame.from_dict(fp, orient='index')
+
+
+fp[0] = fp[0].astype('float')
+
 
 def xfp(team, fp):
     return (team * fp).sum(axis='columns')
@@ -51,22 +57,23 @@ def xfp(team, fp):
 # below, we use simulation
 # values are approx similar for xfp, but variation is quite large
 
-def simulate_team(team):
+def simulate_team(team, fp):
     
     # generate 6 random numbers per player,
     probs = np.random.rand(team.shape[0], 6)
+    events = team > probs[0:team.shape[0], fp]
     
     # make comparison with probabilities to see if events occured
     # first event is the number of goals, so uses the same random number
     # same for duration of play
-    return team > probs[0:team.shape[0], [0, 0, 0, 1, 2, 2, 3, 4, 5]]
+    return events
     
 def run_simulation(team, cnt):
     
     sim_df = pd.DataFrame(index=team.index)
     
     for i in range(0, cnt):
-        s = xfp(simulate_team(team), fp)
+        s = xfp(simulate_team(team, fp[1]), fp[0])
         sim_df[i] = s 
         
     return sim_df
@@ -80,6 +87,7 @@ def run_simulation_all(data):
         
         # comment the lines below to remove statistics
         # but they don't contribute much to the algorithm slowness
+        
         s = x.T.describe()
         s.loc['sum'] = x.sum(axis='columns').T
         
@@ -114,8 +122,14 @@ p2.hist(bins=100)
 #p1 = np.log(p1).replace([np.inf, -np.inf], np.nan).dropna()
 #p2 = np.log(p2).replace([np.inf, -np.inf], np.nan).dropna()
 
-### distribution of overall points
+x = sym['totenham'][0]
+columns = range(int(x.min().min()), int(x.max().max() + 1e-5))
+
+df = pd.DataFrame(columns=columns, index=x.index)
 
 
+for name, row in x.iterrows():
+    print(row.value_counts())
+    df.loc[name] = row.value_counts(normalize=True)
 
 
