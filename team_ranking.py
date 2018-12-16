@@ -55,15 +55,15 @@ def f(params):
     df['Log'] = np.log(np.array(df['Rank'] * df['Result'] + (1.0 - df['Rank']) * (1.0 - df['Result']), dtype=float))
     
     penalty = np.array(params)
-    penalty -= penalty.mean()
+    penalty -= penalty.mean() # tries to get everything closer to the mean; this can be commented out
     
     # remove the np.sqrt ... to remove the penalty for large coefficients
     # if you remove that, the teams that have not been beaten will have a max of 5 score 
-    return -df['Log'].sum() + 0.5 * np.sqrt(np.sum(penalty * penalty))
+    return -df['Log'].sum() #+ 0.1 * np.sqrt(np.sum(penalty * penalty))
 
 from scipy.optimize import minimize, Bounds
 
-x = minimize(f, np.array(params), bounds=Bounds([1e-5] * len(teams), [5] * len(teams)))
+x = minimize(f, np.array(params), bounds=Bounds([1e-5] * len(teams), [1] * len(teams)))
 
 if x.success:
    probs = pd.DataFrame(x.x, index=teams)
