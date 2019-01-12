@@ -161,7 +161,6 @@ def team_distrib(team: pd.DataFrame) -> pd.DataFrame:
     return distributions(pd.DataFrame(team_points).T)
 
 def team_vs_team_hda(t1: pd.DataFrame, t2: pd.DataFrame) -> pd.DataFrame:
-    
     """ Basic HDA for team vs team. """
     
     c1 = t1.columns.sort_values()
