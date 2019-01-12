@@ -132,4 +132,62 @@ for name, row in x.iterrows():
     print(row.value_counts())
     df.loc[name] = row.value_counts(normalize=True)
 
+######
+##### team vs team
+
+brighton = distributions(sym['brighton'][0])
+totenham = distributions(sym['totenham'][0])
+
+def to_dict(team: pd.DataFrame) -> dict:
+    """ Exports to python dictionary a dataframe containing team results"""
+    return team.T.to_dict()
+
+def from_dict(team: dict) -> pd.DataFrame:
+    """ Restores a dataframe team from a python dictionary"""
+    return pd.DataFrame(team).T
+
+def team_distrib(team: pd.DataFrame) -> pd.DataFrame:
+    """ Computes the distribution of xfp for a team """
+    
+    team = team.cumsum(axis='columns')
+    
+    team_points = []
+    
+    for i in range(0, 1000):        
+        rnd = np.random.rand(team.shape[0]).reshape(team.shape[0],1).repeat(team.shape[1], axis=1)
+        evts = team[team < rnd].T.idxmax()
+        team_points.append(evts.sum())
+    
+    return distributions(pd.DataFrame(team_points).T)
+
+def team_vs_team_hda(t1: pd.DataFrame, t2: pd.DataFrame) -> pd.DataFrame:
+    
+    """ Basic HDA for team vs team. """
+    
+    c1 = t1.columns.sort_values()
+    c2 = t2.columns.sort_values()
+    
+    h = 0
+    d = 0
+    a = 0
+    
+    for i in c1:
+        for j in c2:
+            v = float(t1[i] * t2[j])
+            if i < j:
+                 h += v
+            elif i == j:
+                d += v
+            else:
+                a += v
+                
+    return (1/h, 1/d, 1/a)   
+                
+hda_team_vs_team = []
+
+for i in range(0, 10):
+    hda_team_vs_team.append(team_vs_team_hda(team_distrib(brighton), team_distrib(totenham)))
+
+hda_df_t = pd.DataFrame(hda_team_vs_team)
+print(hda_df_t.sem(axis='rows'))
 
